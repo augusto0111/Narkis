@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Historial de Ventas</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #444;
+    }
+
+    th {
+      background-color: #222;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    tr:hover {
+      background-color: #2a2a2a;
+    }
+
+    .volver-btn, .exportar-btn {
+      display: inline-block;
+      margin: 10px 10px 20px 0;
+      padding: 10px 20px;
+      background-color: #444;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .volver-btn:hover, .exportar-btn:hover {
+      background-color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>📈 Historial de Ventas</h1>
+
+  <a href="{{ url_for('admin') }}" class="volver-btn">← Volver al panel</a>
+  <button class="exportar-btn" onclick="exportarCSV()">⬇ Exportar CSV</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Talle</th>
+        <th>Precio</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for venta in ventas %}
+      <tr>
+        <td>{{ venta.producto }}</td>
+        <td>{{ venta.talle }}</td>
+        <td>$ {{ venta.precio }}</td>
+        <td>{{ venta.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    function exportarCSV() {
+      const filas = [['Producto', 'Talle', 'Precio', 'Fecha']];
+      const tabla = document.querySelectorAll('table tbody tr');
+      tabla.forEach(row => {
+        const cols = row.querySelectorAll('td');
+        filas.push([
+          cols[0].innerText,
+          cols[1].innerText,
+          cols[2].innerText.replace('$ ', ''),
+          cols[3].innerText
+        ]);
+      });
+
+      let csvContent = "data:text/csv;charset=utf-8," + filas.map(e => e.join(",")).join("\n");
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", "historial_ventas.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>

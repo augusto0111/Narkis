@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ categoria|capitalize }} - Narkis</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>NARKIS TIENDA</h1>
+
+  <div class="slider-container">
+    <div class="slider-track">
+      <img src="https://i.pinimg.com/736x/a4/e8/7f/a4e87f77a37610077e81af5287f95163.jpg" alt="Banner 1">
+      <img src="https://i.pinimg.com/736x/78/93/4f/78934fc7f30fc1e3a3ea54cd14f46041.jpg" alt="Banner 2">
+    </div>
+  </div>
+
+  <nav class="menu-categorias">
+    <a href="/remeras">Remeras</a>
+    <a href="/pantalones">Pantalones</a>
+    <a href="/abrigos">Abrigos</a>
+    <a href="/otros">Otros</a>
+  </nav>
+
+  <main class="contenedor">
+    <div class="productos">
+      <h2>{{ categoria|capitalize }}</h2>
+      {% for producto in productos if producto.categoria == categoria and producto.activo %}
+        <div class="producto">
+          <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+          <h3>{{ producto.nombre }}</h3>
+          <p>$ {{ producto.precio }}</p>
+
+          {% set sin_stock = producto.stock_S == 0 and producto.stock_M == 0 and producto.stock_L == 0 and producto.stock_XL == 0 %}
+
+          {% if sin_stock %}
+            <p class="sin-stock">Sin stock</p>
+          {% else %}
+            <label for="talle-{{ producto.id }}">Talle:</label>
+            <select id="talle-{{ producto.id }}">
+              {% if producto.stock_S > 0 %}<option value="S">S</option>{% endif %}
+              {% if producto.stock_M > 0 %}<option value="M">M</option>{% endif %}
+              {% if producto.stock_L > 0 %}<option value="L">L</option>{% endif %}
+              {% if producto.stock_XL > 0 %}<option value="XL">XL</option>{% endif %}
+            </select>
+            <button onclick="agregarAlCarrito('{{ producto.nombre }}', {{ producto.precio }}, 'talle-{{ producto.id }}')">Agregar al carrito</button>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <aside class="carrito-contenedor">
+      <h2>Carrito</h2>
+      <ul id="carrito-lista"></ul>
+      <p>Total: $<span id="carrito-total">0</span></p>
+      <button onclick="finalizarPedido()">Finalizar pedido</button>
+    </aside>
+  </main>
+
+  <script>
+    let carrito = [];
+
+    function agregarAlCarrito(nombre, precio, selectId) {
+      const talle = document.getElementById(selectId).value;
+      carrito.push({ nombre, precio, talle });
+      renderCarrito();
+    }
+
+    function renderCarrito() {
+      const lista = document.getElementById('carrito-lista');
+      const total = document.getElementById('carrito-total');
+      lista.innerHTML = '';
+      let suma = 0;
+      carrito.forEach((item, index) => {
+        suma += item.precio;
+        const li = document.createElement('li');
+        li.innerHTML = `${item.nombre} (Talle ${item.talle}) - $${item.precio} <button onclick="eliminar(${index})">x</button>`;
+        lista.appendChild(li);
+      });
+      total.textContent = suma;
+    }
+
+    function eliminar(index) {
+      carrito.splice(index, 1);
+      renderCarrito();
+    }
+
+    function finalizarPedido() {
+      if (carrito.length === 0) {
+        alert('El carrito está vacío.');
+        return;
+      }
+
+      let mensaje = 'Hola! Quiero hacer este pedido:%0A';
+      carrito.forEach(item => {
+        mensaje += `- ${item.nombre} (Talle ${item.talle}) - $${item.precio}%0A`;
+      });
+      const total = carrito.reduce((acc, item) => acc + item.precio, 0);
+      mensaje += `%0ATotal: $${total}`;
+
+      fetch('/finalizar_pedido', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(carrito)
+      })
+      .then(res => res.json())
+      .then(data => {
+        window.open(`https://wa.me/5493876857881?text=${mensaje}`, '_blank');
+        carrito = [];
+        renderCarrito();
+      });
+    }
+  </script>
+</body>
+</html>

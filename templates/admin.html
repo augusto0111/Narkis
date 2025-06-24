@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Administración</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Panel de Administración</h1>
+
+  <div style="margin-bottom: 20px;">
+    <a href="{{ url_for('historial_ventas') }}"><button>📊 Historial de ventas</button></a>
+    <a href="{{ url_for('logout') }}"><button>🚪 Cerrar sesión</button></a>
+  </div>
+
+  <form action="/agregar" method="post">
+    <h2>Agregar producto</h2>
+    <input type="text" name="nombre" placeholder="Nombre del producto" required>
+    <input type="number" name="precio" placeholder="Precio" required>
+    <input type="text" name="imagen" placeholder="URL de la imagen" required>
+
+    <label for="categoria">Categoría:</label>
+    <select name="categoria" id="categoria" required>
+      <option value="remeras">Remeras</option>
+      <option value="pantalones">Pantalones</option>
+      <option value="abrigos">Abrigos</option>
+      <option value="otros">Otros</option>
+    </select>
+
+    <label>Stock S:</label>
+    <input type="number" name="stock_S" min="0" required>
+    <label>Stock M:</label>
+    <input type="number" name="stock_M" min="0" required>
+    <label>Stock L:</label>
+    <input type="number" name="stock_L" min="0" required>
+    <label>Stock XL:</label>
+    <input type="number" name="stock_XL" min="0" required>
+
+    <button type="submit">➕ Agregar producto</button>
+  </form>
+
+  <h2>Productos actuales</h2>
+  <div class="productos">
+    {% for producto in productos %}
+      <div class="producto">
+        <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+        <h3>{{ producto.nombre }}</h3>
+        <p><strong>$ {{ producto.precio }}</strong></p>
+        <p>Categoría: {{ producto.categoria }}</p>
+        <p>Stock: S({{ producto.stock_S }}) M({{ producto.stock_M }}) L({{ producto.stock_L }}) XL({{ producto.stock_XL }})</p>
+        <a href="/eliminar/{{ producto.id }}"><button style="background-color: #ff4d4d;">🗑 Eliminar</button></a>
+      </div>
+    {% endfor %}
+  </div>
+</body>
+</html>
